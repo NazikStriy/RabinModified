@@ -18,133 +18,138 @@ public class RabinDecimal {
     private static BigDecimal FOUR = BigDecimal.valueOf(4);
 
 
-    public static BigDecimal[] genKey(double bitLength) {
-        BigDecimal p = BigDecimal.valueOf(109);
-        BigDecimal q = BigDecimal.valueOf(113);
-        BigDecimal z = BigDecimal.valueOf(3079);
+    public static BigDecimal[] genKey(int bitLength) {
+        BigDecimal p = new BigDecimal(BigInteger.probablePrime(5, r));
+        BigDecimal q = new BigDecimal(BigInteger.probablePrime(5, r));
+        BigDecimal z = new BigDecimal(BigInteger.probablePrime(5, r));
 
-        /*BigInteger p = blumPrime(bitLength/2);
-        BigInteger q = blumPrime(bitLength/2);
-        BigInteger z = blumPrime(bitLength/2);*/
-        BigDecimal N = p.multiply(q).multiply(z);
-        return new BigDecimal[]{N,p,q,z};
+        /*BigDecimal p = BigDecimal.valueOf(191);
+        BigDecimal q = BigDecimal.valueOf(229);
+        BigDecimal z = BigDecimal.valueOf(1151);*/
+
+        BigDecimal n = p.multiply(q).multiply(z);
+        return new BigDecimal[]{n, p, q, z};
     }
 
 
-    public static BigDecimal encrypt(BigDecimal m, BigDecimal N) {
+    public static BigDecimal encrypt(BigDecimal word, BigDecimal n) {
 
-        return BigDecimal.valueOf (m.toBigInteger().modPow(TWO.toBigInteger(), N.toBigInteger()).longValue());
+        return BigDecimal.valueOf(word.toBigInteger().modPow(TWO.toBigInteger(), n.toBigInteger()).longValue());
 
     }
 
-    public static BigDecimal[] decrypt(BigDecimal crypted, BigDecimal p , BigDecimal q, BigDecimal z) {
+    public static BigDecimal[] decrypt(BigDecimal crypted, BigDecimal p, BigDecimal q, BigDecimal z) {
 
-        BigDecimal N = p.multiply(q).multiply(z);
-        BigDecimal radix1;
-        BigDecimal radix2;
-        BigDecimal radix3;
+        BigDecimal n = p.multiply(q).multiply(z);
+        BigDecimal radix1 = BigDecimal.ONE;
+        BigDecimal radix2 = BigDecimal.ONE;
+        BigDecimal radix3 = BigDecimal.ONE;
 
-        if (sqrt(crypted.remainder(p), 3).remainder(BigDecimal.ONE).equals(ZERO) == false) {
 
-            while ((sqrt((crypted.remainder(p)),3).add(k1.multiply(p))).remainder(BigDecimal.ONE) != BigDecimal.ZERO) {
-                k1= k1.add(BigDecimal.ONE);
+        if (k1.multiply(k1).remainder(p).compareTo(crypted.remainder(p)) != 0) {
 
+            while (k1.multiply(k1).remainder(p).compareTo(crypted.remainder(p)) != 0) {
+                k1 = k1.add(BigDecimal.ONE);
+                radix1 = k1;
             }
-
-            radix1 = sqrt((crypted.remainder(p)),3).add(k1.multiply(p)).remainder(p);
-        }
-        else {
-
-            radix1 = sqrt((crypted.remainder(p)),3).add(k1).multiply(p).remainder(p);
+        } else {
+            radix1 = k1;
         }
 
+        if (k2.multiply(k2).remainder(q).compareTo(crypted.remainder(q)) != 0) {
 
-        if (sqrt(crypted.remainder(q), 3).remainder(BigDecimal.ONE).equals(ZERO) == false) {
-            while ((sqrt((crypted.remainder(q)),3).add(k2.multiply(q))).remainder(BigDecimal.ONE) != BigDecimal.ZERO) {
-                k2= k2.add(BigDecimal.ONE);
-
+            while (k2.multiply(k2).remainder(q).compareTo(crypted.remainder(q)) != 0) {
+                k2 = k2.add(BigDecimal.ONE);
+                radix2 = k2;
             }
-
-            radix2 = sqrt((crypted.remainder(q)),3).add(k2.multiply(q)).remainder(q);
-        }
-        else {
-
-            radix2 = sqrt((crypted.remainder(q)),3).add(k2).multiply(q).remainder(q);
+        } else {
+            radix2 = k2;
         }
 
+        if (k3.multiply(k3).remainder(z).compareTo(crypted.remainder(z)) != 0) {
 
-        if (sqrt(crypted.remainder(z), 3).remainder(BigDecimal.ONE).equals(ZERO) == false) {
-            while ((sqrt((crypted.remainder(z)),3).add(k3.multiply(z))).remainder(BigDecimal.ONE) != BigDecimal.ZERO) {
-                k3= k3.add(BigDecimal.ONE);
-
+            while (k3.multiply(k3).remainder(z).compareTo(crypted.remainder(z)) != 0) {
+                k3 = k3.add(BigDecimal.ONE);
+                radix3 = k3;
             }
-
-            radix3 = sqrt((crypted.remainder(z)),3).add(k3.multiply(z)).remainder(z);
+        } else {
+            radix3 = k3;
         }
-        else {
 
-            radix3 = sqrt((crypted.remainder(z)),3).add(k3).multiply(z).remainder(z);
-        }
+        System.out.println("radix1=" + radix1);
+        System.out.println("k1=" + k1);
+        System.out.println("radix2=" + radix2);
+        System.out.println("k2=" + k2);
+        System.out.println("radix3=" + radix3);
+        System.out.println("k3=" + k3);
 
         BigDecimal p_a = p.subtract(radix1);
-        BigDecimal p_b = p.subtract(radix2);
-        BigDecimal p_z = p.subtract(radix3);
+        BigDecimal p_b = q.subtract(radix2);
+        BigDecimal p_z = z.subtract(radix3);
 
-        BigDecimal m1 = N.divide(p).multiply(Negative_One);
-        BigDecimal m2 = N.divide(q);
-        BigDecimal m3 = N.divide(z);
+        BigDecimal m1 = n.divide(p).multiply(Negative_One);
+        BigDecimal m2 = n.divide(q);
+        BigDecimal m3 = n.divide(z);
 
         //y_p*p*m_q + y_q*q*m_p (mod n)
-        BigDecimal out1 = ((m1.multiply(radix1)).add(m2.multiply(radix2)).add(m3.multiply(radix3))).remainder(N);
-        BigDecimal out2 =((m1.multiply(radix1)).add(m2.multiply(radix2)).add(m3.multiply(p_z))).remainder(N);
-        BigDecimal out3 =((m1.multiply(radix1)).add(m2.multiply(p_b)).add(m3.multiply(radix3))).remainder(N);
-        BigDecimal out4 =((m1.multiply(radix1)).add(m2.multiply(p_b)).add(m3.multiply(p_z))).remainder(N);
-        BigDecimal out5 =((m1.multiply(p_a)).add(m2.multiply(radix2)).add(m3.multiply(radix3))).remainder(N);
-        BigDecimal out6 =((m1.multiply(p_a)).add(m2.multiply(radix2)).add(m3.multiply(p_z))).remainder(N);
-        BigDecimal out7 =((m1.multiply(p_a)).add(m2.multiply(p_b)).add(m3.multiply(radix3))).remainder(N);
-        BigDecimal out8 =((m1.multiply(p_a)).add(m2.multiply(p_b)).add(m3.multiply(p_z))).remainder(N);
+        BigDecimal out1 = ((m1.multiply(radix1)).add(m2.multiply(radix2)).add(m3.multiply(radix3))).remainder(n);
 
-        return new BigDecimal[]{out1,out2,out3,out4,out5,out6,out7,out8};
-    }
-
-
-    public static BigDecimal sqrt(BigDecimal in, int scale){
-        BigDecimal sqrt = new BigDecimal(1);
-        sqrt.setScale(scale + 3, RoundingMode.FLOOR);
-        BigDecimal store = new BigDecimal(in.toString());
-        boolean first = true;
-        do{
-            if (!first){
-                store = new BigDecimal(sqrt.toString());
-            }
-            else first = false;
-            store.setScale(scale + 3, RoundingMode.FLOOR);
-            sqrt = in.divide(store, scale + 3, RoundingMode.FLOOR).add(store).divide(
-                    BigDecimal.valueOf(2), scale + 3, RoundingMode.FLOOR);
-        }while (!store.equals(sqrt));
-        return sqrt.setScale(scale, RoundingMode.FLOOR);
-    }
-
-    /*public static BigInteger sqrt(BigInteger x) {
-        BigInteger div = BigInteger.ZERO.setBit(x.bitLength()/2);
-        BigInteger div2 = div;
-        // Loop until we hit the same value twice in a row, or wind
-        // up alternating.
-        for(;;) {
-            BigInteger y = div.add(x.divide(div)).shiftRight(1);
-            if (y.equals(div) || y.equals(div2))
-                return y;
-            div2 = div;
-            div = y;
+        if (out1.compareTo(BigDecimal.ZERO) == -1) {
+            out1 = out1.add(n);
         }
-    }*/
 
-    public static BigInteger blumPrime(int bitLength) {
-        BigInteger p;
-        do {
-            p=BigInteger.probablePrime(bitLength,r);
+        BigDecimal out2 = ((m1.multiply(radix1)).add(m2.multiply(radix2)).add(m3.multiply(p_z))).remainder(n);
+
+        if (out2.compareTo(BigDecimal.ZERO) == -1) {
+            out2 = out2.add(n);
         }
-        while(!p.mod(FOUR.toBigInteger()).equals(THREE));
-        return p;
+
+        BigDecimal out3 = ((m1.multiply(radix1)).add(m2.multiply(p_b)).add(m3.multiply(radix3))).remainder(n);
+
+        if (out3.compareTo(BigDecimal.ZERO) == -1) {
+            out3 = out3.add(n);
+        }
+
+        BigDecimal out4 = ((m1.multiply(radix1)).add(m2.multiply(p_b)).add(m3.multiply(p_z))).remainder(n);
+
+        if (out4.compareTo(BigDecimal.ZERO) == -1) {
+            out4 = out4.add(n);
+        }
+
+        BigDecimal out5 = ((m1.multiply(p_a)).add(m2.multiply(radix2)).add(m3.multiply(radix3))).remainder(n);
+
+        if (out5.compareTo(BigDecimal.ZERO) == -1) {
+            out5 = out5.add(n);
+        }
+
+        BigDecimal out6 = ((m1.multiply(p_a)).add(m2.multiply(radix2)).add(m3.multiply(p_z))).remainder(n);
+
+        if (out6.compareTo(BigDecimal.ZERO) == -1) {
+            out6 = out6.add(n);
+        }
+
+        BigDecimal out7 = ((m1.multiply(p_a)).add(m2.multiply(p_b)).add(m3.multiply(radix3))).remainder(n);
+
+        if (out7.compareTo(BigDecimal.ZERO) == -1) {
+            out7 = out7.add(n);
+        }
+
+        BigDecimal out8 = ((m1.multiply(p_a)).add(m2.multiply(p_b)).add(m3.multiply(p_z))).remainder(n);
+
+        if (out8.compareTo(BigDecimal.ZERO) == -1) {
+            out8 = out8.add(n);
+        }
+
+        System.out.println("out1=" + out1);
+        System.out.println("out2=" + out2);
+        System.out.println("out3=" + out3);
+        System.out.println("out4=" + out4);
+        System.out.println("out5=" + out5);
+        System.out.println("out6=" + out6);
+        System.out.println("out7=" + out7);
+        System.out.println("out8=" + out8);
+
+        return new BigDecimal[]{out1, out2, out3, out4, out5, out6, out7, out8};
     }
+
 }

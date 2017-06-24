@@ -9,30 +9,31 @@ public class RabinTestDecimal {
         int trials = 1;
         for(int i=0;i<trials;i++) {
             BigDecimal[] key = RabinDecimal.genKey(512);
-            BigDecimal N = key[0];
+            BigDecimal n = key[0];
             BigDecimal p = key[1];
             BigDecimal q = key[2];
             BigDecimal z = key[3];
-
+            System.out.println("ss");
             String s = "A";
-            BigInteger m = new BigInteger(s.getBytes(Charset.forName("ascii")));
-            BigDecimal crypted = RabinDecimal.encrypt(BigDecimal.valueOf(m.longValue()), N);
+            BigInteger word = new BigInteger(s.getBytes(Charset.forName("ascii")));
+            BigDecimal crypted = RabinDecimal.encrypt(BigDecimal.valueOf(word.longValue()), n);
 
-            boolean worked = false;
-            BigDecimal[] m2 = RabinDecimal.decrypt(crypted, p, q, z);
-           /* System.out.println("worked "+worked);
-            System.out.println("N="+N);
-            System.out.println("m="+m);
+            System.out.println("N="+n);
+            System.out.println("m="+word);
             System.out.println("p="+p);
             System.out.println("q="+q);
             System.out.println("z="+z);
-            System.out.println("crypted="+crypted);*/
+            System.out.println("crypted="+crypted);
+
+            boolean worked = false;
+            BigDecimal[] m2 = RabinDecimal.decrypt(crypted, p, q, z);
+
             for(BigDecimal b:m2) {
                 String dec = new String(b.toBigInteger().toByteArray(), Charset.forName("ascii"));
                 if(dec.equals(s)) {
                     worked = true;
-                    System.out.println("N="+N);
-                    System.out.println("m="+m);
+                    System.out.println("N="+n);
+                    System.out.println("m="+word);
                     System.out.println("p="+p);
                     System.out.println("q="+q);
                     System.out.println("z="+z);
