@@ -13,10 +13,12 @@ public class RabinTestDecimal {
             BigDecimal p = key[1];
             BigDecimal q = key[2];
             BigDecimal z = key[3];
-            String s = "C";
+            String s = "naz";
             BigInteger word = new BigInteger(s.getBytes(Charset.forName("ascii")));
             BigDecimal crypted = RabinDecimal.encrypt(BigDecimal.valueOf(word.longValue()), n);
 
+            System.out.println("word=" + word);
+            System.out.println("crypted=" + crypted);
             boolean worked = false;
             BigDecimal[] m2 = RabinDecimal.decrypt(crypted, p, q, z);
 
